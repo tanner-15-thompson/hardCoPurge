@@ -2,8 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, Users, Settings, ClipboardList, Home, PlusCircle, MessageSquare } from "lucide-react"
+import { BarChart3, Users, Settings, Home, PlusCircle, MessageSquare } from "lucide-react"
 import { AdminSignout } from "./admin-signout"
+import { cn } from "@/lib/utils"
 
 export function AdminNavigation() {
   const pathname = usePathname()
@@ -60,17 +61,49 @@ export function AdminNavigation() {
             Add Client
           </Link>
 
-          <Link
-            href="/admin/questionnaires"
-            className={`flex items-center px-4 py-3 text-sm rounded-lg ${
-              isActive("/admin/questionnaires")
-                ? "bg-gray-800 text-purple-400"
-                : "hover:bg-gray-800 hover:text-purple-400"
-            }`}
-          >
-            <ClipboardList className="h-5 w-5 mr-3" />
-            Questionnaires
-          </Link>
+          {/* Questionnaires section */}
+          <div className="mb-6">
+            <h3 className="font-medium text-sm mb-2 text-gray-500">QUESTIONNAIRES</h3>
+            <ul className="space-y-1">
+              <li>
+                <Link
+                  href="/admin/questionnaires"
+                  className={cn(
+                    "block px-3 py-2 rounded-md text-sm",
+                    pathname === "/admin/questionnaires" ? "bg-gray-100 font-medium" : "text-gray-600 hover:bg-gray-50",
+                  )}
+                >
+                  All Questionnaires
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/questionnaires/workout"
+                  className={cn(
+                    "block px-3 py-2 rounded-md text-sm",
+                    pathname === "/admin/questionnaires/workout"
+                      ? "bg-gray-100 font-medium"
+                      : "text-gray-600 hover:bg-gray-50",
+                  )}
+                >
+                  Workout Questionnaire
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/questionnaires/nutrition"
+                  className={cn(
+                    "block px-3 py-2 rounded-md text-sm",
+                    pathname === "/admin/questionnaires/nutrition"
+                      ? "bg-gray-100 font-medium"
+                      : "text-gray-600 hover:bg-gray-50",
+                  )}
+                >
+                  Nutrition Questionnaire
+                </Link>
+              </li>
+            </ul>
+          </div>
 
           <Link
             href="/admin/submissions"
