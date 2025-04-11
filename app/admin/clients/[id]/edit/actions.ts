@@ -1,57 +1,44 @@
 "use server"
 
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
-import { checkAdminAuth } from "@/lib/admin-auth"
 
-interface UpdateData {
-  name: string
-  email: string
-  phone: string
-}
-
-export async function updateClient(clientId: string, data: UpdateData) {
-  // Check admin authentication
-  const isAdmin = await checkAdminAuth()
-  if (!isAdmin) {
-    return { error: "Unauthorized access" }
-  }
+export async function updateClient(clientId: number, formData: any) {
+  const supabase = createServerActionClient({ cookies })
 
   try {
-    const supabase = createServerSupabaseClient()
-
-    // Basic validation
-    if (!data.name.trim()) {
-      return { error: "Name is required" }
-    }
-
-    if (!data.email.trim()) {
-      return { error: "Email is required" }
-    }
-
-    // Update client in database
     const { error } = await supabase
       .from("clients")
       .update({
-        name: data.name.trim(),
-        email: data.email.trim(),
-        phone: data.phone.trim(),
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        goals: formData.goals,
+        fitness_level: formData.fitness_level,
+        health_conditions: formData.health_conditions,
+        dietary_restrictions: formData.dietary_restrictions,
         updated_at: new Date().toISOString(),
       })
       .eq("id", clientId)
 
     if (error) {
       console.error("Error updating client:", error)
-      return { error: error.message }
+      throw new Error("Failed to update client")
     }
 
-    // Revalidate the client pages to reflect the changes
-    revalidatePath(`/admin/clients/${clientId}`)
-    revalidatePath("/admin/clients")
+    // Log the activity
+    await supabase.from("activity_logs").insert({
+      client_id: clientId,
+      activity_type: "Client Updated",
+      description: "Client profile information was updated",
+      created_at: new Date().toISOString(),
+    })
 
+    revalidatePath(`/admin/clients/${clientId}`)
     return { success: true }
   } catch (error) {
-    console.error("Unexpected error updating client:", error)
-    return { error: "An unexpected error occurred" }
+    console.error("Error in updateClient:", error)
+    throw error
   }
 }
