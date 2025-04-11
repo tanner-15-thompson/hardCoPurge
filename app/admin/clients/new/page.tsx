@@ -36,6 +36,20 @@ export default function NewClientPage() {
     setLoading(true)
 
     try {
+      // First check if email already exists
+      const { data: existingClient } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("email", formData.email)
+        .maybeSingle()
+
+      if (existingClient) {
+        setError("A client with this email address already exists")
+        setLoading(false)
+        return
+      }
+
+      // If email doesn't exist, proceed with insert
       const { error } = await supabase.from("clients").insert([formData])
 
       if (error) throw error
@@ -43,7 +57,12 @@ export default function NewClientPage() {
       router.push("/clients")
       router.refresh()
     } catch (err: any) {
-      setError(err.message || "An error occurred while adding the client")
+      // Handle specific database constraint errors
+      if (err.message?.includes("clients_email_key")) {
+        setError("A client with this email address already exists")
+      } else {
+        setError(err.message || "An error occurred while adding the client")
+      }
     } finally {
       setLoading(false)
     }
