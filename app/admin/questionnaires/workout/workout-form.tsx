@@ -5,14 +5,20 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { saveWorkoutQuestionnaire } from "./actions"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select } from "@/components/ui/select"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
 type Client = {
   id: number
   name: string
 }
 
-type WorkoutFormData = {
-  clientId: number
+type WorkoutData = {
   primaryGoal: string
   eventDeadline: string
   secondaryGoals: string
@@ -36,13 +42,16 @@ type WorkoutFormData = {
   timezone: string
 }
 
-export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[] }) {
+interface WorkoutQuestionnaireFormProps {
+  clients: Client[]
+}
+
+export default function WorkoutQuestionnaireForm({ clients }: WorkoutQuestionnaireFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
-  const [formData, setFormData] = useState<WorkoutFormData>({
-    clientId: 0,
+  const [formData, setFormData] = useState<WorkoutData>({
     primaryGoal: "",
     eventDeadline: "",
     secondaryGoals: "",
@@ -77,45 +86,16 @@ export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[
     setMessage(null)
 
     try {
-      if (!formData.clientId) {
-        throw new Error("Please select a client")
-      }
-
       const result = await saveWorkoutQuestionnaire({
-        client_id: formData.clientId,
-        workout_data: {
-          primaryGoal: formData.primaryGoal,
-          eventDeadline: formData.eventDeadline,
-          secondaryGoals: formData.secondaryGoals,
-          fitnessLevel: formData.fitnessLevel,
-          trainingExperience: formData.trainingExperience,
-          currentStats: formData.currentStats,
-          bodyComposition: formData.bodyComposition,
-          preferredTrainingStyle: formData.preferredTrainingStyle,
-          trainingDaysPerWeek: formData.trainingDaysPerWeek,
-          workoutDuration: formData.workoutDuration,
-          specialSkills: formData.specialSkills,
-          injuries: formData.injuries,
-          exercisesCannotPerform: formData.exercisesCannotPerform,
-          equipmentAccess: formData.equipmentAccess,
-          timeConstraints: formData.timeConstraints,
-          mainMotivation: formData.mainMotivation,
-          challenges: formData.challenges,
-          progressTrackingMethod: formData.progressTrackingMethod,
-          startDate: formData.startDate,
-          defaultWorkoutTime: formData.defaultWorkoutTime,
-          timezone: formData.timezone,
-        },
+        client_id: Number(e.currentTarget.closest("form")?.querySelector<HTMLSelectElement>("#clientId")?.value),
+        workout_data: formData,
       })
 
       if (result.success) {
         setMessage({ type: "success", text: "Questionnaire saved successfully!" })
-        // Reset form or redirect
-        setTimeout(() => {
-          router.refresh()
-        }, 2000)
+        router.refresh()
       } else {
-        setMessage({ type: "error", text: result.message })
+        setMessage({ type: "error", text: result.message || "An error occurred" })
       }
     } catch (error) {
       setMessage({
@@ -128,367 +108,338 @@ export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-md">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {message && (
-        <div
-          className={`p-4 rounded-md ${
-            message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
-          }`}
-        >
-          {message.text}
-        </div>
+        <Alert variant={message.type === "success" ? "default" : "destructive"}>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{message.text}</AlertDescription>
+        </Alert>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Client Selection */}
-        <div className="md:col-span-2">
-          <label htmlFor="clientId" className="block text-sm font-medium text-gray-700 mb-1">
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold text-gray-100">Workout Questionnaire</h2>
+
+        <div>
+          <Label htmlFor="clientId" className="block text-sm font-medium text-gray-300 mb-1">
             Client Name *
-          </label>
-          <select
+          </Label>
+          <Select
             id="clientId"
             name="clientId"
-            value={formData.clientId}
-            onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            onValueChange={(value) => setFormData({ ...formData, clientId: Number(value) })}
             required
           >
             <option value="">Select a client</option>
             {clients.map((client) => (
-              <option key={client.id} value={client.id}>
+              <option key={client.id} value={client.id.toString()}>
                 {client.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
-        {/* Primary Goal */}
         <div>
-          <label htmlFor="primaryGoal" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="primaryGoal" className="block text-sm font-medium text-gray-300 mb-1">
             Primary Fitness Goal
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             id="primaryGoal"
             name="primaryGoal"
             value={formData.primaryGoal}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-input"
           />
         </div>
 
-        {/* Event Deadline */}
         <div>
-          <label htmlFor="eventDeadline" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="eventDeadline" className="block text-sm font-medium text-gray-300 mb-1">
             Specific Event or Deadline
-          </label>
-          <input
+          </Label>
+          <Input
             type="date"
             id="eventDeadline"
             name="eventDeadline"
             value={formData.eventDeadline}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-input"
           />
         </div>
 
-        {/* Secondary Goals */}
         <div>
-          <label htmlFor="secondaryGoals" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="secondaryGoals" className="block text-sm font-medium text-gray-300 mb-1">
             Secondary Goals
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="secondaryGoals"
             name="secondaryGoals"
             value={formData.secondaryGoals}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-textarea"
             rows={3}
           />
         </div>
 
-        {/* Fitness Level */}
         <div>
-          <label htmlFor="fitnessLevel" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="fitnessLevel" className="block text-sm font-medium text-gray-300 mb-1">
             Current Fitness Level
-          </label>
-          <select
+          </Label>
+          <Select
             id="fitnessLevel"
             name="fitnessLevel"
             value={formData.fitnessLevel}
-            onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            onValueChange={(value) => setFormData({ ...formData, fitnessLevel: value })}
+            className="admin-select"
           >
             <option value="Beginner">Beginner</option>
             <option value="Intermediate">Intermediate</option>
             <option value="Advanced">Advanced</option>
-          </select>
+          </Select>
         </div>
 
-        {/* Training Experience */}
         <div>
-          <label htmlFor="trainingExperience" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="trainingExperience" className="block text-sm font-medium text-gray-300 mb-1">
             Training Experience
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="trainingExperience"
             name="trainingExperience"
             value={formData.trainingExperience}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-textarea"
             rows={3}
           />
         </div>
 
-        {/* Current Stats */}
         <div>
-          <label htmlFor="currentStats" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="currentStats" className="block text-sm font-medium text-gray-300 mb-1">
             Current Stats or Benchmarks
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="currentStats"
             name="currentStats"
             value={formData.currentStats}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-textarea"
             rows={3}
           />
         </div>
 
-        {/* Body Composition */}
         <div>
-          <label htmlFor="bodyComposition" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="bodyComposition" className="block text-sm font-medium text-gray-300 mb-1">
             Current Body Composition or Weight
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             id="bodyComposition"
             name="bodyComposition"
             value={formData.bodyComposition}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-input"
           />
         </div>
 
-        {/* Preferred Training Style */}
         <div>
-          <label htmlFor="preferredTrainingStyle" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="preferredTrainingStyle" className="block text-sm font-medium text-gray-300 mb-1">
             Preferred Training Method or Style
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             id="preferredTrainingStyle"
             name="preferredTrainingStyle"
             value={formData.preferredTrainingStyle}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-input"
           />
         </div>
 
-        {/* Training Days */}
         <div>
-          <label htmlFor="trainingDaysPerWeek" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="trainingDaysPerWeek" className="block text-sm font-medium text-gray-300 mb-1">
             Training Days per Week
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             id="trainingDaysPerWeek"
             name="trainingDaysPerWeek"
             value={formData.trainingDaysPerWeek}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-input"
           />
         </div>
 
-        {/* Workout Duration */}
         <div>
-          <label htmlFor="workoutDuration" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="workoutDuration" className="block text-sm font-medium text-gray-300 mb-1">
             Ideal Workout Duration
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             id="workoutDuration"
             name="workoutDuration"
             value={formData.workoutDuration}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-input"
           />
         </div>
 
-        {/* Special Skills */}
         <div>
-          <label htmlFor="specialSkills" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="specialSkills" className="block text-sm font-medium text-gray-300 mb-1">
             Special Skills or Focus Exercises
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="specialSkills"
             name="specialSkills"
             value={formData.specialSkills}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-textarea"
             rows={3}
           />
         </div>
 
-        {/* Injuries */}
         <div>
-          <label htmlFor="injuries" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="injuries" className="block text-sm font-medium text-gray-300 mb-1">
             Injuries or Physical Limitations
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="injuries"
             name="injuries"
             value={formData.injuries}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-textarea"
             rows={3}
           />
         </div>
 
-        {/* Exercises Cannot Perform */}
         <div>
-          <label htmlFor="exercisesCannotPerform" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="exercisesCannotPerform" className="block text-sm font-medium text-gray-300 mb-1">
             Exercises You Cannot Perform
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="exercisesCannotPerform"
             name="exercisesCannotPerform"
             value={formData.exercisesCannotPerform}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-textarea"
             rows={3}
           />
         </div>
 
-        {/* Equipment Access */}
         <div>
-          <label htmlFor="equipmentAccess" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="equipmentAccess" className="block text-sm font-medium text-gray-300 mb-1">
             Equipment Access
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="equipmentAccess"
             name="equipmentAccess"
             value={formData.equipmentAccess}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-textarea"
             rows={3}
           />
         </div>
 
-        {/* Time Constraints */}
         <div>
-          <label htmlFor="timeConstraints" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="timeConstraints" className="block text-sm font-medium text-gray-300 mb-1">
             Time Constraints or Scheduling Preferences
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="timeConstraints"
             name="timeConstraints"
             value={formData.timeConstraints}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-textarea"
             rows={3}
           />
         </div>
 
-        {/* Main Motivation */}
         <div>
-          <label htmlFor="mainMotivation" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="mainMotivation" className="block text-sm font-medium text-gray-300 mb-1">
             Main Motivation
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="mainMotivation"
             name="mainMotivation"
             value={formData.mainMotivation}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-textarea"
             rows={3}
           />
         </div>
 
-        {/* Challenges */}
         <div>
-          <label htmlFor="challenges" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="challenges" className="block text-sm font-medium text-gray-300 mb-1">
             Challenges in Sticking to a Plan
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="challenges"
             name="challenges"
             value={formData.challenges}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-textarea"
             rows={3}
           />
         </div>
 
-        {/* Progress Tracking Method */}
         <div>
-          <label htmlFor="progressTrackingMethod" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="progressTrackingMethod" className="block text-sm font-medium text-gray-300 mb-1">
             Preferred Progress Tracking Method
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             id="progressTrackingMethod"
             name="progressTrackingMethod"
             value={formData.progressTrackingMethod}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-input"
           />
         </div>
 
-        {/* Start Date */}
         <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="startDate" className="block text-sm font-medium text-gray-300 mb-1">
             Start Date
-          </label>
-          <input
+          </Label>
+          <Input
             type="date"
             id="startDate"
             name="startDate"
             value={formData.startDate}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-input"
           />
         </div>
 
-        {/* Default Workout Time */}
         <div>
-          <label htmlFor="defaultWorkoutTime" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="defaultWorkoutTime" className="block text-sm font-medium text-gray-300 mb-1">
             Default Workout Start Time
-          </label>
-          <input
+          </Label>
+          <Input
             type="time"
             id="defaultWorkoutTime"
             name="defaultWorkoutTime"
             value={formData.defaultWorkoutTime}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-input"
           />
         </div>
 
-        {/* Timezone */}
         <div>
-          <label htmlFor="timezone" className="block text-sm font-medium text-gray-700 mb-1">
+          <Label htmlFor="timezone" className="block text-sm font-medium text-gray-300 mb-1">
             Timezone
-          </label>
-          <input
+          </Label>
+          <Input
             type="text"
             id="timezone"
             name="timezone"
             value={formData.timezone}
             onChange={handleChange}
-            className="w-full p-2 border rounded-md"
+            className="admin-input"
           />
         </div>
       </div>
 
       <div className="mt-8">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting} className="admin-button-primary">
           {isSubmitting ? "Saving..." : "Save Questionnaire"}
-        </button>
+        </Button>
       </div>
     </form>
   )
