@@ -73,7 +73,7 @@ export default function NewClientPage() {
       <div className="mb-6">
         <Link
           href="/clients"
-          className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
+          className="inline-flex items-center text-sm font-medium text-purple-400 hover:text-purple-300"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path
@@ -86,14 +86,14 @@ export default function NewClientPage() {
         </Link>
       </div>
 
-      <div className="bg-white shadow-sm rounded-lg p-6 max-w-lg mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Add New Client</h1>
+      <div className="bg-gray-800 shadow-sm rounded-lg p-6 max-w-lg mx-auto border border-gray-700">
+        <h1 className="text-2xl font-bold text-white mb-6">Add New Client</h1>
 
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
+          <div className="bg-red-900/20 border-l-4 border-red-500 p-4 mb-6 rounded">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -102,7 +102,7 @@ export default function NewClientPage() {
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
+                <p className="text-sm text-red-400">{error}</p>
               </div>
             </div>
           </div>
@@ -110,8 +110,8 @@ export default function NewClientPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name <span className="text-red-500">*</span>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
+              Full Name <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
@@ -119,15 +119,15 @@ export default function NewClientPage() {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 transition-colors text-white"
               placeholder="John Doe"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address <span className="text-red-500">*</span>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+              Email Address <span className="text-red-400">*</span>
             </label>
             <input
               type="email"
@@ -135,14 +135,14 @@ export default function NewClientPage() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 transition-colors text-white"
               placeholder="john@example.com"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1">
               Phone Number
             </label>
             <input
@@ -151,7 +151,7 @@ export default function NewClientPage() {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 transition-colors text-white"
               placeholder="(123) 456-7890"
             />
           </div>
@@ -159,13 +159,13 @@ export default function NewClientPage() {
           <div className="flex items-center justify-end space-x-3 pt-4">
             <Link
               href="/clients"
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              className="px-4 py-2 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
             >
               Cancel
             </Link>
             <button
               type="submit"
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors flex items-center"
+              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors flex items-center"
               disabled={loading}
             >
               {loading ? (

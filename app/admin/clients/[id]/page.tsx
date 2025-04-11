@@ -58,10 +58,7 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
     if (isNaN(clientId)) {
       return (
         <div className="max-w-md mx-auto px-4 py-8">
-          <div
-            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl"
-            role="alert"
-          >
+          <div className="bg-red-900/20 border border-red-800 text-red-400 px-4 py-3 rounded-xl" role="alert">
             <p className="font-medium">Invalid client ID</p>
             <p className="text-sm mt-1">Please check the URL and try again.</p>
           </div>
@@ -174,27 +171,23 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
         {/* Progress section */}
         <div className="max-w-5xl mx-auto px-4 mt-8 mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Your Progress</h2>
+            <h2 className="text-xl font-semibold text-white">Your Progress</h2>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6">
+          <div className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6">
             <div className="mb-6">
-              <h3 className="font-medium">Overall Goal Progress</h3>
-              <div className="w-full bg-gray-200 rounded-full h-4 mt-2 dark:bg-gray-700">
+              <h3 className="font-medium text-gray-200">Overall Goal Progress</h3>
+              <div className="w-full bg-gray-700 rounded-full h-4 mt-2">
                 <div className="bg-green-500 h-4 rounded-full" style={{ width: `${overallGoalProgressCalc}%` }}></div>
               </div>
-              {/* Explain calculation */}
-              {/* Time Elapsed Since Phase 1: {timeElapsed / (1000 * 60 * 60 * 24)} days */}
-              {/* Time Left in Program (since Phase 1): {totalTime / (1000 * 60 * 60 * 24)} days */}
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-400 mt-1">
                 {overallGoalProgressCalc.toFixed(1)}% towards your overall goal (Timeline: 26 weeks to October)
               </p>
             </div>
 
             <div className="flex items-center mb-4">
               <Flame className="h-5 w-5 text-yellow-500 mr-2" />
-              <h3 className="font-medium">Workout Streak: {workoutStreak} days</h3>
-              {/* If no streak, explain why  */}
+              <h3 className="font-medium text-gray-200">Workout Streak: {workoutStreak} days</h3>
             </div>
           </div>
         </div>
@@ -204,10 +197,7 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
     console.error("Error in client dashboard page:", err)
     return (
       <div className="max-w-md mx-auto px-4 py-8">
-        <div
-          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl"
-          role="alert"
-        >
+        <div className="bg-red-900/20 border border-red-800 text-red-400 px-4 py-3 rounded-xl" role="alert">
           <p className="font-medium">An error occurred</p>
           <p className="text-sm mt-1">Please try again later.</p>
         </div>
@@ -215,27 +205,3 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
     )
   }
 }
-
-// Function to format relative time (e.g., "2 days ago")
-// function formatRelativeTime(date: Date) {
-//  const now = new Date();
-//  const diffTime = Math.abs(now.getTime() - date.getTime());
-//  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-//  if (diffDays === 0) {
-//   const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
-//   if (diffHours === 0) {
-//   const diffMinutes = Math.ceil(diffTime / (1000 * 60));
-//   return `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""} ago`;
-//   }
-//   return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
-//  } else if (diffDays === 1) {
-//   return "Yesterday";
-//  } else {
-//   return `${diffDays} days ago`;
-//  }
-// }
-
-// function formatDate(date: Date) {
-//  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-//  return date.toLocaleDateString(undefined, options);
-// }

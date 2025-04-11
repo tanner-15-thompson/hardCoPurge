@@ -7,96 +7,112 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle, Loader2 } from "lucide-react"
+import { updateClient } from "./actions"
 
-export function ClientEditForm({ client }: { client: any }) {
-  const [name, setName] = useState(client.name || "")
-  const [email, setEmail] = useState(client.email || "")
-  const [phone, setPhone] = useState(client.phone || "")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
+interface ClientEditFormProps {
+  client: {
+    id: number
+    name: string
+    email: string
+    phone: string
+  }
+}
 
+export function ClientEditForm({ client }: ClientEditFormProps) {
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  const [formData, setFormData] = useState({
+    name: client.name,
+    email: client.email,
+    phone: client.phone,
+  })
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError("")
-    setSuccess("")
+    setIsLoading(true)
 
     try {
-      // Update client in Supabase
-      const { error } = await supabase
-        .from("clients")
-        .update({
-          name,
-          email,
-          phone,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", client.id)
+      const result = await updateClient(client.id.toString(), formData)
 
-      if (error) {
-        throw error
-      }
-
-      setSuccess("Client updated successfully!")
-
-      // Refresh the page data
-      router.refresh()
-
-      // Redirect back to client details after a short delay
-      setTimeout(() => {
+      if (result.error) {
+        setError(result.error)
+      } else {
         router.push(`/admin/clients/${client.id}`)
-      }, 1500)
+        router.refresh()
+      }
     } catch (err: any) {
-      console.error("Error updating client:", err)
-      setError(err.message || "Failed to update client")
+      setError(err.message || "An error occurred while updating the client")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          <p>{error}</p>
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-          <p>{success}</p>
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <Label htmlFor="name">Name</Label>
-        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+      <div>
+        <Label htmlFor="name">Full Name</Label>
+        <Input
+          type="text"
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          className="bg-gray-700 border-gray-600 text-white"
+          required
+        />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      <div>
+        <Label htmlFor="email">Email Address</Label>
+        <Input
+          type="email"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          className="bg-gray-700 border-gray-600 text-white"
+          required
+        />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="phone">Phone</Label>
-        <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <div>
+        <Label htmlFor="phone">Phone Number</Label>
+        <Input
+          type="tel"
+          id="phone"
+          name="phone"
+          value={formData.phone}
+          onChange={handleChange}
+          className="bg-gray-700 border-gray-600 text-white"
+        />
       </div>
 
-      <div className="flex gap-4">
-        <Button type="submit" disabled={isLoading} className="bg-purple-600 hover:bg-purple-700">
-          {isLoading ? "Saving..." : "Save Changes"}
-        </Button>
-
-        <Button type="button" variant="outline" onClick={() => router.push(`/admin/clients/${client.id}`)}>
-          Cancel
-        </Button>
-      </div>
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Updating...
+          </>
+        ) : (
+          "Update Client"
+        )}
+      </Button>
     </form>
   )
 }

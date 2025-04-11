@@ -5,12 +5,32 @@ import { usePathname } from "next/navigation"
 import { BarChart3, Users, Settings, Home, PlusCircle, MessageSquare } from "lucide-react"
 import { AdminSignout } from "./admin-signout"
 import { cn } from "@/lib/utils"
+import { useEffect, useState } from "react"
 
 export function AdminNavigation() {
   const pathname = usePathname()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // Don't render navigation on the login page
-  if (pathname === "/admin") {
+  useEffect(() => {
+    // Check if the user is authenticated on the client side
+    const checkAuth = () => {
+      const cookies = document.cookie.split(";").map((cookie) => cookie.trim())
+      const isAuth = cookies.some(
+        (cookie) => cookie.startsWith("admin_authenticated=") || cookie.startsWith("admin_session="),
+      )
+      setIsAuthenticated(isAuth)
+    }
+
+    checkAuth()
+
+    // Also check when the component mounts
+    if (typeof window !== "undefined") {
+      checkAuth()
+    }
+  }, [pathname])
+
+  // If not authenticated and not on the login page, don't render the navigation
+  if (!isAuthenticated && pathname === "/admin") {
     return null
   }
 
@@ -22,7 +42,7 @@ export function AdminNavigation() {
   }
 
   return (
-    <div className="bg-gray-900 text-gray-200 w-64 flex-shrink-0 hidden md:block h-screen fixed left-0 top-0">
+    <div className="bg-gray-900 text-gray-200 w-64 flex-shrink-0 hidden md:block">
       <div className="flex flex-col h-full">
         <div className="p-4">
           <Link href="/" className="flex items-center">
@@ -33,9 +53,11 @@ export function AdminNavigation() {
 
         <nav className="flex-1 p-4 space-y-1">
           <Link
-            href="/admin/dashboard"
+            href="/admin"
             className={`flex items-center px-4 py-3 text-sm rounded-lg ${
-              isActive("/admin/dashboard") ? "bg-gray-800 text-purple-400" : "hover:bg-gray-800 hover:text-purple-400"
+              isActive("/admin") && pathname === "/admin"
+                ? "bg-gray-800 text-purple-400"
+                : "hover:bg-gray-800 hover:text-purple-400"
             }`}
           >
             <BarChart3 className="h-5 w-5 mr-3" />
@@ -73,9 +95,7 @@ export function AdminNavigation() {
                   href="/admin/questionnaires"
                   className={cn(
                     "block px-3 py-2 rounded-md text-sm",
-                    pathname === "/admin/questionnaires"
-                      ? "bg-gray-800 text-purple-400"
-                      : "text-gray-400 hover:bg-gray-800 hover:text-purple-400",
+                    pathname === "/admin/questionnaires" ? "bg-gray-100 font-medium" : "text-gray-600 hover:bg-gray-50",
                   )}
                 >
                   All Questionnaires
@@ -87,8 +107,8 @@ export function AdminNavigation() {
                   className={cn(
                     "block px-3 py-2 rounded-md text-sm",
                     pathname === "/admin/questionnaires/workout"
-                      ? "bg-gray-800 text-purple-400"
-                      : "text-gray-400 hover:bg-gray-800 hover:text-purple-400",
+                      ? "bg-gray-100 font-medium"
+                      : "text-gray-600 hover:bg-gray-50",
                   )}
                 >
                   Workout Questionnaire
@@ -100,8 +120,8 @@ export function AdminNavigation() {
                   className={cn(
                     "block px-3 py-2 rounded-md text-sm",
                     pathname === "/admin/questionnaires/nutrition"
-                      ? "bg-gray-800 text-purple-400"
-                      : "text-gray-400 hover:bg-gray-800 hover:text-purple-400",
+                      ? "bg-gray-100 font-medium"
+                      : "text-gray-600 hover:bg-gray-50",
                   )}
                 >
                   Nutrition Questionnaire
