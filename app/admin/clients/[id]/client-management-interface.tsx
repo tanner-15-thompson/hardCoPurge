@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ClientInfoSection from "./sections/client-info-section"
 import QuestionnaireSection from "./sections/questionnaire-section"
+import FullQuestionnaireView from "./sections/full-questionnaire-view"
 import PromptGenerationSection from "./sections/prompt-generation-section"
 import PlansSection from "./sections/plans-section"
 import ActivitySection from "./sections/activity-section"
@@ -60,7 +61,7 @@ export default function ClientManagementInterface({
         </TabsContent>
 
         <TabsContent value="questionnaire" className="space-y-6">
-          <QuestionnaireSection client={client} questionnaire={questionnaire} />
+          <FullQuestionnaireView questionnaire={questionnaire} />
         </TabsContent>
 
         <TabsContent value="prompts" className="space-y-6">

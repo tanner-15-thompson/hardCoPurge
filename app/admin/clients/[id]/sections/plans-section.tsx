@@ -24,10 +24,10 @@ export default function PlansSection({ client, workoutPlans, nutritionPlans, com
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-white font-medium">Workout Plans</h3>
-            <Link href={`/admin/clients/${client.id}/workout/new`}>
+            <Link href={`/admin/clients/${client.id}/plans`}>
               <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
                 <FilePlus className="h-4 w-4 mr-1" />
-                New Plan
+                Paste Workout Plan
               </Button>
             </Link>
           </div>
@@ -60,9 +60,9 @@ export default function PlansSection({ client, workoutPlans, nutritionPlans, com
             <div className="text-center py-6 bg-gray-700/30 rounded-lg">
               <FileText className="h-8 w-8 text-gray-500 mx-auto mb-2" />
               <p className="text-gray-400">No workout plans yet</p>
-              <Link href={`/admin/clients/${client.id}/workout/new`}>
+              <Link href={`/admin/clients/${client.id}/plans`}>
                 <Button variant="outline" size="sm" className="mt-3 border-gray-600 text-gray-300 hover:bg-gray-700">
-                  Create Workout Plan
+                  Paste Workout Plan
                 </Button>
               </Link>
             </div>
@@ -72,7 +72,7 @@ export default function PlansSection({ client, workoutPlans, nutritionPlans, com
         <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-white font-medium">Nutrition Plans</h3>
-            <Link href={`/admin/clients/${client.id}/nutrition/new`}>
+            <Link href={`/admin/clients/${client.id}/plans`}>
               <Button variant="outline" size="sm" className="border-gray-600 text-gray-300 hover:bg-gray-700">
                 <FilePlus className="h-4 w-4 mr-1" />
                 New Plan
@@ -108,9 +108,9 @@ export default function PlansSection({ client, workoutPlans, nutritionPlans, com
             <div className="text-center py-6 bg-gray-700/30 rounded-lg">
               <FileText className="h-8 w-8 text-gray-500 mx-auto mb-2" />
               <p className="text-gray-400">No nutrition plans yet</p>
-              <Link href={`/admin/clients/${client.id}/nutrition/new`}>
+              <Link href={`/admin/clients/${client.id}/plans`}>
                 <Button variant="outline" size="sm" className="mt-3 border-gray-600 text-gray-300 hover:bg-gray-700">
-                  Create Nutrition Plan
+                  Paste Nutrition Plan
                 </Button>
               </Link>
             </div>

@@ -5,6 +5,8 @@ export interface QuestionnaireData {
   client_id: number
   workout_data: WorkoutData
   nutrition_data: NutritionData
+  created_at?: string
+  updated_at?: string
 }
 
 export interface WorkoutData {
@@ -35,20 +37,94 @@ export async function getClientQuestionnaire(clientId: number): Promise<Question
   const supabase = createServerComponentClient({ cookies })
 
   try {
+    // First check if the client exists
+    const { data: clientData, error: clientError } = await supabase
+      .from("clients")
+      .select("id")
+      .eq("id", clientId)
+      .single()
+
+    if (clientError || !clientData) {
+      console.error("Client not found:", clientError)
+      return null
+    }
+
+    // Then fetch the questionnaire
     const { data, error } = await supabase
       .from("client_questionnaires")
       .select("*")
       .eq("client_id", clientId)
-      .order("created_at", { ascending: false }) // Order by creation date to get the latest
-      .limit(1) // Limit to one result
-      .single() // Still use single() to ensure only one result is returned
+      .order("created_at", { ascending: false })
+      .limit(1)
 
     if (error) {
       console.error("Error fetching client questionnaire:", error)
       return null
     }
 
-    return data as QuestionnaireData
+    // If no questionnaire exists yet, return a default structure
+    if (!data || data.length === 0) {
+      return {
+        client_id: clientId,
+        workout_data: {
+          goal: "",
+          experience: "beginner",
+          frequency: 3,
+          limitations: [],
+          preferences: [],
+        },
+        nutrition_data: {
+          goal: "",
+          allergies: [],
+          preferences: "balanced",
+          mealFrequency: 3,
+          restrictions: [],
+        },
+      }
+    }
+
+    // Ensure the data has the expected structure
+    const questionnaire = data[0] as QuestionnaireData
+
+    // Ensure workout_data has all required fields
+    if (!questionnaire.workout_data) {
+      questionnaire.workout_data = {
+        goal: "",
+        experience: "beginner",
+        frequency: 3,
+        limitations: [],
+        preferences: [],
+      }
+    } else {
+      // Ensure arrays are initialized
+      if (!Array.isArray(questionnaire.workout_data.limitations)) {
+        questionnaire.workout_data.limitations = []
+      }
+      if (!Array.isArray(questionnaire.workout_data.preferences)) {
+        questionnaire.workout_data.preferences = []
+      }
+    }
+
+    // Ensure nutrition_data has all required fields
+    if (!questionnaire.nutrition_data) {
+      questionnaire.nutrition_data = {
+        goal: "",
+        allergies: [],
+        preferences: "balanced",
+        mealFrequency: 3,
+        restrictions: [],
+      }
+    } else {
+      // Ensure arrays are initialized
+      if (!Array.isArray(questionnaire.nutrition_data.allergies)) {
+        questionnaire.nutrition_data.allergies = []
+      }
+      if (!Array.isArray(questionnaire.nutrition_data.restrictions)) {
+        questionnaire.nutrition_data.restrictions = []
+      }
+    }
+
+    return questionnaire
   } catch (err) {
     console.error("Error in getClientQuestionnaire:", err)
     return null

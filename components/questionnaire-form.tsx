@@ -6,17 +6,25 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import type { QuestionnaireData, WorkoutData, NutritionData } from "@/lib/questionnaire-service"
 import { saveQuestionnaire } from "@/app/actions/questionnaire-actions"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { AlertCircle, CheckCircle, Loader2 } from "lucide-react"
 
 interface QuestionnaireFormProps {
   clientId: number
   initialData?: QuestionnaireData
+  activeSection?: "workout" | "nutrition"
 }
 
-export function QuestionnaireForm({ clientId, initialData }: QuestionnaireFormProps) {
+export function QuestionnaireForm({ clientId, initialData, activeSection = "workout" }: QuestionnaireFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
+  // Default workout data structure
   const defaultWorkoutData: WorkoutData = {
     goal: "",
     experience: "beginner",
@@ -25,6 +33,7 @@ export function QuestionnaireForm({ clientId, initialData }: QuestionnaireFormPr
     preferences: [],
   }
 
+  // Default nutrition data structure
   const defaultNutritionData: NutritionData = {
     goal: "",
     allergies: [],
@@ -33,10 +42,11 @@ export function QuestionnaireForm({ clientId, initialData }: QuestionnaireFormPr
     restrictions: [],
   }
 
+  // Initialize state with provided data or defaults
   const [workoutData, setWorkoutData] = useState<WorkoutData>(initialData?.workout_data || defaultWorkoutData)
-
   const [nutritionData, setNutritionData] = useState<NutritionData>(initialData?.nutrition_data || defaultNutritionData)
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -65,25 +75,22 @@ export function QuestionnaireForm({ clientId, initialData }: QuestionnaireFormPr
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {message && (
-        <div
-          className={`p-4 rounded-md ${
-            message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
+  // Function to switch between sections
+  const switchSection = (section: "workout" | "nutrition") => {
+    router.push(`/admin/clients/${clientId}/questionnaire?section=${section}`)
+  }
 
-      <div className="space-y-6">
-        <h2 className="text-xl font-semibold">Workout Questionnaire</h2>
-
+  // Render the workout questionnaire form
+  const renderWorkoutForm = () => (
+    <Card className="p-6 space-y-6">
+      <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">What is your primary fitness goal?</label>
+          <Label htmlFor="goal" className="text-base font-medium">
+            Primary Fitness Goal
+          </Label>
           <select
-            className="w-full p-2 border rounded-md"
+            id="goal"
+            className="w-full p-2 mt-1 border rounded-md"
             value={workoutData.goal}
             onChange={(e) => setWorkoutData({ ...workoutData, goal: e.target.value })}
             required
@@ -98,9 +105,12 @@ export function QuestionnaireForm({ clientId, initialData }: QuestionnaireFormPr
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Experience Level</label>
+          <Label htmlFor="experience" className="text-base font-medium">
+            Experience Level
+          </Label>
           <select
-            className="w-full p-2 border rounded-md"
+            id="experience"
+            className="w-full p-2 mt-1 border rounded-md"
             value={workoutData.experience}
             onChange={(e) => setWorkoutData({ ...workoutData, experience: e.target.value })}
           >
@@ -111,21 +121,27 @@ export function QuestionnaireForm({ clientId, initialData }: QuestionnaireFormPr
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">How many days per week can you workout?</label>
-          <input
+          <Label htmlFor="frequency" className="text-base font-medium">
+            Workout Frequency (days per week)
+          </Label>
+          <Input
+            id="frequency"
             type="number"
             min="1"
             max="7"
-            className="w-full p-2 border rounded-md"
+            className="mt-1"
             value={workoutData.frequency}
             onChange={(e) => setWorkoutData({ ...workoutData, frequency: Number.parseInt(e.target.value) })}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Do you have any physical limitations?</label>
-          <textarea
-            className="w-full p-2 border rounded-md"
+          <Label htmlFor="limitations" className="text-base font-medium">
+            Physical Limitations or Injuries
+          </Label>
+          <Textarea
+            id="limitations"
+            className="mt-1"
             value={workoutData.limitations.join(", ")}
             onChange={(e) =>
               setWorkoutData({
@@ -136,18 +152,47 @@ export function QuestionnaireForm({ clientId, initialData }: QuestionnaireFormPr
                   .filter(Boolean),
               })
             }
-            placeholder="Enter any limitations separated by commas"
+            placeholder="Enter any limitations separated by commas (e.g., knee pain, shoulder injury)"
+            rows={3}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="preferences" className="text-base font-medium">
+            Exercise Preferences
+          </Label>
+          <Textarea
+            id="preferences"
+            className="mt-1"
+            value={workoutData.preferences.join(", ")}
+            onChange={(e) =>
+              setWorkoutData({
+                ...workoutData,
+                preferences: e.target.value
+                  .split(",")
+                  .map((item) => item.trim())
+                  .filter(Boolean),
+              })
+            }
+            placeholder="Enter exercise preferences separated by commas (e.g., weightlifting, running, yoga)"
+            rows={3}
           />
         </div>
       </div>
+    </Card>
+  )
 
-      <div className="space-y-6">
-        <h2 className="text-xl font-semibold">Nutrition Questionnaire</h2>
-
+  // Render the nutrition questionnaire form
+  const renderNutritionForm = () => (
+    <Card className="p-6 space-y-6">
+      <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">What is your nutrition goal?</label>
+          <Label htmlFor="nutritionGoal" className="text-base font-medium">
+            Nutrition Goal
+          </Label>
           <select
-            className="w-full p-2 border rounded-md"
+            id="nutritionGoal"
+            className="w-full p-2 mt-1 border rounded-md"
             value={nutritionData.goal}
             onChange={(e) => setNutritionData({ ...nutritionData, goal: e.target.value })}
             required
@@ -161,27 +206,12 @@ export function QuestionnaireForm({ clientId, initialData }: QuestionnaireFormPr
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Do you have any food allergies?</label>
-          <textarea
-            className="w-full p-2 border rounded-md"
-            value={nutritionData.allergies.join(", ")}
-            onChange={(e) =>
-              setNutritionData({
-                ...nutritionData,
-                allergies: e.target.value
-                  .split(",")
-                  .map((item) => item.trim())
-                  .filter(Boolean),
-              })
-            }
-            placeholder="Enter any allergies separated by commas"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Dietary Preference</label>
+          <Label htmlFor="dietaryPreference" className="text-base font-medium">
+            Dietary Preference
+          </Label>
           <select
-            className="w-full p-2 border rounded-md"
+            id="dietaryPreference"
+            className="w-full p-2 mt-1 border rounded-md"
             value={nutritionData.preferences}
             onChange={(e) => setNutritionData({ ...nutritionData, preferences: e.target.value })}
           >
@@ -194,25 +224,102 @@ export function QuestionnaireForm({ clientId, initialData }: QuestionnaireFormPr
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">How many meals do you prefer per day?</label>
-          <input
+          <Label htmlFor="mealFrequency" className="text-base font-medium">
+            Preferred Meals Per Day
+          </Label>
+          <Input
+            id="mealFrequency"
             type="number"
             min="1"
             max="6"
-            className="w-full p-2 border rounded-md"
+            className="mt-1"
             value={nutritionData.mealFrequency}
             onChange={(e) => setNutritionData({ ...nutritionData, mealFrequency: Number.parseInt(e.target.value) })}
           />
         </div>
-      </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-      >
-        {isSubmitting ? "Saving..." : "Save Questionnaire"}
-      </button>
+        <div>
+          <Label htmlFor="allergies" className="text-base font-medium">
+            Food Allergies
+          </Label>
+          <Textarea
+            id="allergies"
+            className="mt-1"
+            value={nutritionData.allergies.join(", ")}
+            onChange={(e) =>
+              setNutritionData({
+                ...nutritionData,
+                allergies: e.target.value
+                  .split(",")
+                  .map((item) => item.trim())
+                  .filter(Boolean),
+              })
+            }
+            placeholder="Enter any food allergies separated by commas (e.g., nuts, dairy, shellfish)"
+            rows={3}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="restrictions" className="text-base font-medium">
+            Dietary Restrictions
+          </Label>
+          <Textarea
+            id="restrictions"
+            className="mt-1"
+            value={nutritionData.restrictions.join(", ")}
+            onChange={(e) =>
+              setNutritionData({
+                ...nutritionData,
+                restrictions: e.target.value
+                  .split(",")
+                  .map((item) => item.trim())
+                  .filter(Boolean),
+              })
+            }
+            placeholder="Enter any dietary restrictions separated by commas (e.g., gluten-free, low-carb)"
+            rows={3}
+          />
+        </div>
+      </div>
+    </Card>
+  )
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {message && (
+        <div
+          className={`p-4 rounded-md flex items-center ${
+            message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+          }`}
+        >
+          {message.type === "success" ? (
+            <CheckCircle className="h-5 w-5 mr-2" />
+          ) : (
+            <AlertCircle className="h-5 w-5 mr-2" />
+          )}
+          {message.text}
+        </div>
+      )}
+
+      {activeSection === "workout" ? renderWorkoutForm() : renderNutritionForm()}
+
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Save Questionnaire"
+          )}
+        </Button>
+      </div>
     </form>
   )
 }

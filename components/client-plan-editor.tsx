@@ -6,6 +6,9 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import type { ClientPlan } from "@/lib/questionnaire-service"
 import { saveClientPlan } from "@/app/actions/questionnaire-actions"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
 
 interface ClientPlanEditorProps {
   clientId: number
@@ -24,6 +27,11 @@ export function ClientPlanEditor({ clientId, initialData }: ClientPlanEditorProp
     workout_ics: initialData?.workout_ics || "",
     nutrition_ics: initialData?.nutrition_ics || "",
   })
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setPlanData((prev) => ({ ...prev, [name]: value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,22 +73,16 @@ export function ClientPlanEditor({ clientId, initialData }: ClientPlanEditorProp
         <h2 className="text-xl font-semibold">Workout Plan</h2>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Workout HTML</label>
-          <textarea
-            className="w-full p-2 border rounded-md font-mono text-sm h-64"
+          <Label htmlFor="workout_html" className="block text-sm font-medium mb-1">
+            Workout HTML
+          </Label>
+          <Textarea
+            id="workout_html"
+            name="workout_html"
             value={planData.workout_html}
-            onChange={(e) => setPlanData({ ...planData, workout_html: e.target.value })}
+            onChange={handleChange}
             placeholder="<div>Workout plan HTML content</div>"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Workout Calendar (ICS format)</label>
-          <textarea
-            className="w-full p-2 border rounded-md font-mono text-sm h-32"
-            value={planData.workout_ics || ""}
-            onChange={(e) => setPlanData({ ...planData, workout_ics: e.target.value })}
-            placeholder="BEGIN:VCALENDAR..."
+            className="w-full p-2 border rounded-md font-mono text-sm h-64"
           />
         </div>
       </div>
@@ -89,33 +91,23 @@ export function ClientPlanEditor({ clientId, initialData }: ClientPlanEditorProp
         <h2 className="text-xl font-semibold">Nutrition Plan</h2>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Nutrition HTML</label>
-          <textarea
-            className="w-full p-2 border rounded-md font-mono text-sm h-64"
+          <Label htmlFor="nutrition_html" className="block text-sm font-medium mb-1">
+            Nutrition HTML
+          </Label>
+          <Textarea
+            id="nutrition_html"
+            name="nutrition_html"
             value={planData.nutrition_html}
-            onChange={(e) => setPlanData({ ...planData, nutrition_html: e.target.value })}
+            onChange={handleChange}
             placeholder="<div>Nutrition plan HTML content</div>"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Nutrition Calendar (ICS format)</label>
-          <textarea
-            className="w-full p-2 border rounded-md font-mono text-sm h-32"
-            value={planData.nutrition_ics || ""}
-            onChange={(e) => setPlanData({ ...planData, nutrition_ics: e.target.value })}
-            placeholder="BEGIN:VCALENDAR..."
+            className="w-full p-2 border rounded-md font-mono text-sm h-64"
           />
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-      >
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? "Saving..." : "Save Client Plan"}
-      </button>
+      </Button>
     </form>
   )
 }
