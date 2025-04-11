@@ -9,6 +9,11 @@ import { cn } from "@/lib/utils"
 export function AdminNavigation() {
   const pathname = usePathname()
 
+  // Don't render navigation on the login page
+  if (pathname === "/admin") {
+    return null
+  }
+
   const isActive = (path: string) => {
     if (path === "/admin" && pathname === "/admin") {
       return true
@@ -17,7 +22,7 @@ export function AdminNavigation() {
   }
 
   return (
-    <div className="bg-gray-900 text-gray-200 w-64 flex-shrink-0 hidden md:block">
+    <div className="bg-gray-900 text-gray-200 w-64 flex-shrink-0 hidden md:block h-screen fixed left-0 top-0">
       <div className="flex flex-col h-full">
         <div className="p-4">
           <Link href="/" className="flex items-center">
@@ -28,11 +33,9 @@ export function AdminNavigation() {
 
         <nav className="flex-1 p-4 space-y-1">
           <Link
-            href="/admin"
+            href="/admin/dashboard"
             className={`flex items-center px-4 py-3 text-sm rounded-lg ${
-              isActive("/admin") && pathname === "/admin"
-                ? "bg-gray-800 text-purple-400"
-                : "hover:bg-gray-800 hover:text-purple-400"
+              isActive("/admin/dashboard") ? "bg-gray-800 text-purple-400" : "hover:bg-gray-800 hover:text-purple-400"
             }`}
           >
             <BarChart3 className="h-5 w-5 mr-3" />
@@ -70,7 +73,9 @@ export function AdminNavigation() {
                   href="/admin/questionnaires"
                   className={cn(
                     "block px-3 py-2 rounded-md text-sm",
-                    pathname === "/admin/questionnaires" ? "bg-gray-100 font-medium" : "text-gray-600 hover:bg-gray-50",
+                    pathname === "/admin/questionnaires"
+                      ? "bg-gray-800 text-purple-400"
+                      : "text-gray-400 hover:bg-gray-800 hover:text-purple-400",
                   )}
                 >
                   All Questionnaires
@@ -82,8 +87,8 @@ export function AdminNavigation() {
                   className={cn(
                     "block px-3 py-2 rounded-md text-sm",
                     pathname === "/admin/questionnaires/workout"
-                      ? "bg-gray-100 font-medium"
-                      : "text-gray-600 hover:bg-gray-50",
+                      ? "bg-gray-800 text-purple-400"
+                      : "text-gray-400 hover:bg-gray-800 hover:text-purple-400",
                   )}
                 >
                   Workout Questionnaire
@@ -95,8 +100,8 @@ export function AdminNavigation() {
                   className={cn(
                     "block px-3 py-2 rounded-md text-sm",
                     pathname === "/admin/questionnaires/nutrition"
-                      ? "bg-gray-100 font-medium"
-                      : "text-gray-600 hover:bg-gray-50",
+                      ? "bg-gray-800 text-purple-400"
+                      : "text-gray-400 hover:bg-gray-800 hover:text-purple-400",
                   )}
                 >
                   Nutrition Questionnaire

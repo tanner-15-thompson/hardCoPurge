@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +26,8 @@ export function AdminAuth() {
 
       if (result.success) {
         setIsSuccess(true)
+        // Set a cookie to indicate the user is authenticated
+        document.cookie = "admin_authenticated=true; path=/; max-age=86400" // 24 hours
         // Use direct navigation
         window.location.href = "/admin/submissions"
       } else {
@@ -41,7 +42,7 @@ export function AdminAuth() {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-black border border-purple-900/50 rounded-lg shadow-lg">
+    <div className="w-full max-w-md p-6 bg-black border border-purple-900/50 rounded-lg shadow-lg">
       <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
 
       {error && (

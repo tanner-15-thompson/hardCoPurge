@@ -1,59 +1,18 @@
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-
-// Simple admin authentication service
-export const AdminService = {
-  // Sign in and store auth state in localStorage
-  async signIn(email: string, password: string): Promise<{ success: boolean; message: string }> {
+// This is a simplified version to understand the authentication mechanism
+export class AdminService {
+  static async signIn(email: string, password: string) {
     try {
-      const supabase = createClientComponentClient()
-
-      // Sign in with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (error) {
-        console.error("Sign in error:", error)
-        return { success: false, message: error.message }
+      // Check if the credentials match the admin credentials
+      if (email === process.env.ADMIN_EMAIL && password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
+        // Set a cookie to indicate the user is authenticated
+        document.cookie = "admin_authenticated=true; path=/; max-age=86400" // 24 hours
+        return { success: true }
+      } else {
+        return { success: false, message: "Invalid credentials" }
       }
-
-      if (!data.session) {
-        return { success: false, message: "No session returned" }
-      }
-
-      // Store auth state in localStorage
-      localStorage.setItem("adminAuthenticated", "true")
-      localStorage.setItem("adminUserId", data.session.user.id)
-
-      return { success: true, message: "Authentication successful" }
     } catch (error) {
-      console.error("Sign in exception:", error)
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : "Unknown error occurred",
-      }
+      console.error("Error signing in:", error)
+      return { success: false, message: "An error occurred during sign in" }
     }
-  },
-
-  // Check if user is authenticated
-  isAuthenticated(): boolean {
-    // Check localStorage first (for client-side)
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("adminAuthenticated") === "true"
-    }
-    return false
-  },
-
-  // Sign out
-  async signOut(): Promise<void> {
-    const supabase = createClientComponentClient()
-    await supabase.auth.signOut()
-
-    // Clear localStorage
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("adminAuthenticated")
-      localStorage.removeItem("adminUserId")
-    }
-  },
+  }
 }
