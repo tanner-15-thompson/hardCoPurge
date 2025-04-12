@@ -1,71 +1,75 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
-import { notFound } from "next/navigation"
-import { ClientHeaderNav } from "@/components/client-header-nav"
-import { PromptGenerator } from "@/components/prompt-generator"
-import { ClientPaymentStatus } from "@/components/client-payment-status"
-import { ClientDetailContent } from "@/components/client-detail-content"
+"use client"
 
-export default async function ClientDashboardPage({ params }: { params: { id: string } }) {
-  const supabase = createServerComponentClient({ cookies })
+import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { Loader2 } from "lucide-react"
+import { ClientDetailContent } from "./client-detail-content"
 
-  try {
-    // Validate that id is a number
-    const clientId = Number.parseInt(params.id)
-    if (isNaN(clientId)) {
-      return (
-        <div className="max-w-md mx-auto px-4 py-8">
-          <div className="bg-red-900/20 border border-red-800 text-red-400 px-4 py-3 rounded-xl" role="alert">
-            <p className="font-medium">Invalid client ID</p>
-            <p className="text-sm mt-1">Please check the URL and try again.</p>
-          </div>
-        </div>
-      )
+export default function ClientDetailPage() {
+  const [client, setClient] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const params = useParams()
+  const clientId = params?.id
+  const supabase = createClientComponentClient()
+
+  useEffect(() => {
+    async function fetchClient() {
+      if (!clientId) {
+        setError("Client ID is missing")
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        const { data, error } = await supabase.from("clients").select("*").eq("id", clientId).single()
+
+        if (error) {
+          throw error
+        }
+
+        if (!data) {
+          setError("Client not found")
+        } else {
+          setClient(data)
+        }
+      } catch (error: any) {
+        console.error("Error fetching client:", error)
+        setError(error.message || "Failed to load client")
+      } finally {
+        setLoading(false)
+      }
     }
 
-    // Fetch client data
-    const { data: client, error } = await supabase
-      .from("clients")
-      .select(
-        "id, name, email, phone, stripe_customer_id, last_payment_date, payment_amount, payment_frequency, created_at",
-      )
-      .eq("id", clientId)
-      .single()
+    fetchClient()
+  }, [clientId, supabase])
 
-    if (error) {
-      console.error("Error fetching client:", error)
-      return notFound()
-    }
-
+  if (loading) {
     return (
-      <div>
-        <ClientHeaderNav clientId={clientId} clientName={client.name} />
-
-        <div className="container mx-auto py-8">
-          <ClientDetailContent clientId={clientId} clientData={client} />
-          <ClientPaymentStatus
-            clientId={clientId}
-            stripeSubscriptionId={client.stripe_customer_id}
-            lastPaymentDate={client.last_payment_date}
-            paymentAmount={client.payment_amount}
-            paymentFrequency={client.payment_frequency}
-          />
-          <PromptGenerator clientId={clientId} clientName={client.name} />
-        </div>
-      </div>
-    )
-  } catch (err) {
-    console.error("Error in client dashboard page:", err)
-    return (
-      <div className="max-w-md mx-auto px-4 py-8">
-        <div
-          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl"
-          role="alert"
-        >
-          <p className="font-medium">An error occurred</p>
-          <p className="text-sm mt-1">Please try again later.</p>
-        </div>
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader2 className="h-8 w-8 text-purple-500 animate-spin" />
       </div>
     )
   }
+
+  if (error) {
+    return (
+      <div className="bg-red-900/20 border border-red-700 rounded-lg p-6 text-center">
+        <h2 className="text-xl font-bold text-red-400 mb-2">Error</h2>
+        <p className="text-gray-300">{error}</p>
+      </div>
+    )
+  }
+
+  if (!client) {
+    return (
+      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 text-center">
+        <p className="text-gray-400">Client not found</p>
+      </div>
+    )
+  }
+
+  return <ClientDetailContent client={client} />
 }

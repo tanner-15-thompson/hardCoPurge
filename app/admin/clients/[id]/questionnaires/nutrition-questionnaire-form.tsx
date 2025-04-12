@@ -2,22 +2,27 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { saveNutritionQuestionnaire } from "./actions"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { saveQuestionnaire } from "@/app/actions/questionnaire-actions"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
-export function NutritionQuestionnaireForm() {
-  const router = useRouter()
+interface NutritionQuestionnaireFormProps {
+  clientId: number
+  clientName: string
+  existingData?: any
+}
+
+export function NutritionQuestionnaireForm({ clientId, clientName, existingData }: NutritionQuestionnaireFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
   const [formData, setFormData] = useState({
-    clientName: "",
     primaryGoal: "",
     eventDeadline: "",
     secondaryGoals: "",
@@ -50,6 +55,13 @@ export function NutritionQuestionnaireForm() {
     workoutReference: "",
   })
 
+  // Load existing data if available
+  useEffect(() => {
+    if (existingData) {
+      setFormData(existingData)
+    }
+  }, [existingData])
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -65,50 +77,46 @@ export function NutritionQuestionnaireForm() {
     setMessage(null)
 
     try {
-      const result = await saveNutritionQuestionnaire(formData)
+      const result = await saveQuestionnaire({
+        client_id: clientId,
+        workout_data: existingData?.workout_data || null,
+        nutrition_data: formData,
+      })
 
       if (result.success) {
-        setMessage({ type: "success", text: result.message })
-        // Optionally reset form or redirect
+        setMessage({ type: "success", text: "Nutrition questionnaire saved successfully!" })
       } else {
-        setMessage({ type: "error", text: result.message })
+        setMessage({ type: "error", text: result.message || "An error occurred" })
       }
     } catch (error) {
-      setMessage({ type: "error", text: "An unexpected error occurred" })
-      console.error(error)
+      setMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "An unknown error occurred",
+      })
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="bg-gray-900 p-6 rounded-lg shadow-lg">
+    <div>
       {message && (
-        <div
-          className={`mb-4 p-4 rounded-md ${
-            message.type === "success" ? "bg-green-800 text-green-100" : "bg-red-800 text-red-100"
-          }`}
-        >
-          {message.text}
-        </div>
+        <Alert variant={message.type === "success" ? "default" : "destructive"} className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{message.text}</AlertDescription>
+        </Alert>
       )}
-      
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="clientName" className="text-white">Client Name</Label>
-          <Input
-            id="clientName"
-            name="clientName"
-            value={formData.clientName}
-            onChange={handleChange}
-            className="bg-gray-800 border-gray-700 text-white"
-            placeholder="Enter client's full name"
-            required
-          />
+          <h2 className="text-xl font-semibold text-white">Nutrition Questionnaire for {clientName}</h2>
+          <p className="text-gray-400 text-sm">Complete the form below to create a nutrition plan.</p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="primaryGoal" className="text-white">Primary Nutritional Goal</Label>
+          <Label htmlFor="primaryGoal" className="text-white">
+            Primary Nutritional Goal
+          </Label>
           <Textarea
             id="primaryGoal"
             name="primaryGoal"
@@ -116,12 +124,13 @@ export function NutritionQuestionnaireForm() {
             onChange={handleChange}
             className="bg-gray-800 border-gray-700 text-white"
             placeholder="What is your main nutritional goal?"
-            required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="eventDeadline" className="text-white">Specific Event or Deadline</Label>
+          <Label htmlFor="eventDeadline" className="text-white">
+            Specific Event or Deadline
+          </Label>
           <Input
             id="eventDeadline"
             name="eventDeadline"
@@ -133,7 +142,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="secondaryGoals" className="text-white">Secondary Nutrition Goals</Label>
+          <Label htmlFor="secondaryGoals" className="text-white">
+            Secondary Nutrition Goals
+          </Label>
           <Textarea
             id="secondaryGoals"
             name="secondaryGoals"
@@ -145,7 +156,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="currentEatingHabits" className="text-white">Current Eating Habits</Label>
+          <Label htmlFor="currentEatingHabits" className="text-white">
+            Current Eating Habits
+          </Label>
           <Textarea
             id="currentEatingHabits"
             name="currentEatingHabits"
@@ -157,7 +170,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="dietaryPreferences" className="text-white">Dietary Preferences</Label>
+          <Label htmlFor="dietaryPreferences" className="text-white">
+            Dietary Preferences
+          </Label>
           <Textarea
             id="dietaryPreferences"
             name="dietaryPreferences"
@@ -169,7 +184,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="dietaryRestrictions" className="text-white">Dietary Restrictions</Label>
+          <Label htmlFor="dietaryRestrictions" className="text-white">
+            Dietary Restrictions
+          </Label>
           <Textarea
             id="dietaryRestrictions"
             name="dietaryRestrictions"
@@ -181,7 +198,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="favoriteFoods" className="text-white">Favorite Foods</Label>
+          <Label htmlFor="favoriteFoods" className="text-white">
+            Favorite Foods
+          </Label>
           <Textarea
             id="favoriteFoods"
             name="favoriteFoods"
@@ -193,7 +212,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="foodsToAvoid" className="text-white">Foods to Avoid</Label>
+          <Label htmlFor="foodsToAvoid" className="text-white">
+            Foods to Avoid
+          </Label>
           <Textarea
             id="foodsToAvoid"
             name="foodsToAvoid"
@@ -205,11 +226,13 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="currentWeight" className="text-white">Current Weight</Label>
+          <Label htmlFor="currentWeight" className="text-white">
+            Current Weight
+          </Label>
           <Input
             id="currentWeight"
             name="currentWeight"
-            type="number"
+            type="text"
             value={formData.currentWeight}
             onChange={handleChange}
             className="bg-gray-800 border-gray-700 text-white"
@@ -218,23 +241,27 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="height" className="text-white">Height</Label>
+          <Label htmlFor="height" className="text-white">
+            Height
+          </Label>
           <Input
             id="height"
             name="height"
             value={formData.height}
             onChange={handleChange}
             className="bg-gray-800 border-gray-700 text-white"
-            placeholder="Height (e.g., 5'10\" or 178cm)"
+            placeholder="Height (e.g., 5'10&quot; or 178cm)"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="age" className="text-white">Age</Label>
+          <Label htmlFor="age" className="text-white">
+            Age
+          </Label>
           <Input
             id="age"
             name="age"
-            type="number"
+            type="text"
             value={formData.age}
             onChange={handleChange}
             className="bg-gray-800 border-gray-700 text-white"
@@ -243,10 +270,10 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="gender" className="text-white">Gender</Label>
-          <Select
-            onValueChange={(value) => handleSelectChange("gender", value)}
-          >
+          <Label htmlFor="gender" className="text-white">
+            Gender
+          </Label>
+          <Select value={formData.gender} onValueChange={(value) => handleSelectChange("gender", value)}>
             <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Select gender" />
             </SelectTrigger>
@@ -258,10 +285,10 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="activityLevel" className="text-white">Activity Level</Label>
-          <Select
-            onValueChange={(value) => handleSelectChange("activityLevel", value)}
-          >
+          <Label htmlFor="activityLevel" className="text-white">
+            Activity Level
+          </Label>
+          <Select value={formData.activityLevel} onValueChange={(value) => handleSelectChange("activityLevel", value)}>
             <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Select activity level" />
             </SelectTrigger>
@@ -275,7 +302,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="preferredCuisines" className="text-white">Preferred Cuisines or Flavors</Label>
+          <Label htmlFor="preferredCuisines" className="text-white">
+            Preferred Cuisines or Flavors
+          </Label>
           <Textarea
             id="preferredCuisines"
             name="preferredCuisines"
@@ -287,8 +316,11 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="cookingSkillLevel" className="text-white">Cooking Skill Level</Label>
+          <Label htmlFor="cookingSkillLevel" className="text-white">
+            Cooking Skill Level
+          </Label>
           <Select
+            value={formData.cookingSkillLevel}
             onValueChange={(value) => handleSelectChange("cookingSkillLevel", value)}
           >
             <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
@@ -303,7 +335,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="cookingFrequency" className="text-white">Cooking Frequency</Label>
+          <Label htmlFor="cookingFrequency" className="text-white">
+            Cooking Frequency
+          </Label>
           <Input
             id="cookingFrequency"
             name="cookingFrequency"
@@ -315,7 +349,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="preferredMealStructure" className="text-white">Preferred Meal Structure</Label>
+          <Label htmlFor="preferredMealStructure" className="text-white">
+            Preferred Meal Structure
+          </Label>
           <Textarea
             id="preferredMealStructure"
             name="preferredMealStructure"
@@ -327,7 +363,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="typicalMealTimes" className="text-white">Typical Meal Times</Label>
+          <Label htmlFor="typicalMealTimes" className="text-white">
+            Typical Meal Times
+          </Label>
           <Textarea
             id="typicalMealTimes"
             name="typicalMealTimes"
@@ -339,7 +377,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="weeklyShoppingDay" className="text-white">Weekly Shopping Day</Label>
+          <Label htmlFor="weeklyShoppingDay" className="text-white">
+            Weekly Shopping Day
+          </Label>
           <Input
             id="weeklyShoppingDay"
             name="weeklyShoppingDay"
@@ -351,7 +391,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="city" className="text-white">City</Label>
+          <Label htmlFor="city" className="text-white">
+            City
+          </Label>
           <Input
             id="city"
             name="city"
@@ -363,7 +405,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="budgetConstraints" className="text-white">Budget Constraints</Label>
+          <Label htmlFor="budgetConstraints" className="text-white">
+            Budget Constraints
+          </Label>
           <Textarea
             id="budgetConstraints"
             name="budgetConstraints"
@@ -375,7 +419,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="timeConstraints" className="text-white">Time Constraints for Meal Prep</Label>
+          <Label htmlFor="timeConstraints" className="text-white">
+            Time Constraints for Meal Prep
+          </Label>
           <Textarea
             id="timeConstraints"
             name="timeConstraints"
@@ -387,7 +433,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="kitchenEquipment" className="text-white">Access to Kitchen Equipment</Label>
+          <Label htmlFor="kitchenEquipment" className="text-white">
+            Access to Kitchen Equipment
+          </Label>
           <Textarea
             id="kitchenEquipment"
             name="kitchenEquipment"
@@ -399,7 +447,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="restaurantPreferences" className="text-white">Fast Food and Restaurant Preferences</Label>
+          <Label htmlFor="restaurantPreferences" className="text-white">
+            Fast Food and Restaurant Preferences
+          </Label>
           <Textarea
             id="restaurantPreferences"
             name="restaurantPreferences"
@@ -411,7 +461,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="mainMotivation" className="text-white">Main Motivation</Label>
+          <Label htmlFor="mainMotivation" className="text-white">
+            Main Motivation
+          </Label>
           <Textarea
             id="mainMotivation"
             name="mainMotivation"
@@ -423,7 +475,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="challenges" className="text-white">Challenges in Sticking to a Nutrition Plan</Label>
+          <Label htmlFor="challenges" className="text-white">
+            Challenges in Sticking to a Nutrition Plan
+          </Label>
           <Textarea
             id="challenges"
             name="challenges"
@@ -435,7 +489,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="progressTrackingMethod" className="text-white">Preferred Progress Tracking Method</Label>
+          <Label htmlFor="progressTrackingMethod" className="text-white">
+            Preferred Progress Tracking Method
+          </Label>
           <Textarea
             id="progressTrackingMethod"
             name="progressTrackingMethod"
@@ -447,7 +503,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="startDate" className="text-white">Start Date</Label>
+          <Label htmlFor="startDate" className="text-white">
+            Start Date
+          </Label>
           <Input
             id="startDate"
             name="startDate"
@@ -459,8 +517,11 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="preferredPlanStyle" className="text-white">Preferred Plan Style</Label>
+          <Label htmlFor="preferredPlanStyle" className="text-white">
+            Preferred Plan Style
+          </Label>
           <Select
+            value={formData.preferredPlanStyle}
             onValueChange={(value) => handleSelectChange("preferredPlanStyle", value)}
           >
             <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
@@ -474,7 +535,9 @@ export function NutritionQuestionnaireForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="workoutReference" className="text-white">Workout Reference</Label>
+          <Label htmlFor="workoutReference" className="text-white">
+            Workout Reference
+          </Label>
           <Textarea
             id="workoutReference"
             name="workoutReference"
@@ -485,11 +548,7 @@ export function NutritionQuestionnaireForm() {
           />
         </div>
 
-        <Button 
-          type="submit" 
-          className="w-full bg-green-600 hover:bg-green-700 text-white"
-          disabled={isSubmitting}
-        >
+        <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white" disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : "Save Nutrition Questionnaire"}
         </Button>
       </form>

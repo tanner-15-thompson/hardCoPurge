@@ -2,8 +2,21 @@
 
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
-import type { QuestionnaireData, ClientPlan } from "@/lib/questionnaire-service"
 import { revalidatePath } from "next/cache"
+
+export type QuestionnaireData = {
+  client_id: number
+  workout_data: any
+  nutrition_data: any
+}
+
+export type ClientPlan = {
+  client_id: number
+  workout_html: string
+  nutrition_html: string
+  workout_ics: string
+  nutrition_ics: string
+}
 
 export async function saveQuestionnaire(data: QuestionnaireData) {
   const supabase = createServerActionClient({ cookies })
@@ -20,19 +33,40 @@ export async function saveQuestionnaire(data: QuestionnaireData) {
     return { success: false, message: "Unauthorized" }
   }
 
-  const { error } = await supabase.from("client_questionnaires").upsert({
-    client_id: data.client_id,
-    workout_data: data.workout_data,
-    nutrition_data: data.nutrition_data,
-  })
+  // Check if questionnaire already exists
+  const { data: existingQuestionnaire } = await supabase
+    .from("client_questionnaires")
+    .select("*")
+    .eq("client_id", data.client_id)
+    .single()
 
-  if (error) {
-    console.error("Error saving questionnaire:", error)
-    return { success: false, message: error.message }
+  let result
+
+  if (existingQuestionnaire) {
+    // Update existing questionnaire
+    result = await supabase
+      .from("client_questionnaires")
+      .update({
+        workout_data: data.workout_data,
+        nutrition_data: data.nutrition_data,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("client_id", data.client_id)
+  } else {
+    // Insert new questionnaire
+    result = await supabase.from("client_questionnaires").insert({
+      client_id: data.client_id,
+      workout_data: data.workout_data,
+      nutrition_data: data.nutrition_data,
+    })
   }
 
-  revalidatePath(`/admin/clients/${data.client_id}`)
-  revalidatePath(`/admin/clients/${data.client_id}/questionnaire`)
+  if (result.error) {
+    console.error("Error saving questionnaire:", result.error)
+    return { success: false, message: result.error.message }
+  }
+
+  revalidatePath(`/admin/clients/${data.client_id}/questionnaires`)
 
   return { success: true, message: "Questionnaire saved successfully" }
 }

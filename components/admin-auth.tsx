@@ -27,12 +27,12 @@ export function AdminAuth() {
 
       if (result.success) {
         setIsSuccess(true)
-        // Set a cookie to indicate the user is authenticated
-        document.cookie = "admin_authenticated=true; path=/; max-age=86400" // 24 hours
-        // Use direct navigation
-        window.location.href = "/admin/submissions"
+        // Use direct navigation after a short delay to allow state updates
+        setTimeout(() => {
+          window.location.href = "/admin/submissions"
+        }, 500)
       } else {
-        setError(result.message)
+        setError(result.message || "Authentication failed")
       }
     } catch (err) {
       console.error("Login error:", err)

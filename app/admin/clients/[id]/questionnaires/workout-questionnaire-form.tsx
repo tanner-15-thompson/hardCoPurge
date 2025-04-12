@@ -2,23 +2,23 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { saveWorkoutQuestionnaire } from "./actions"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { saveQuestionnaire } from "@/app/actions/questionnaire-actions"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
-type Client = {
-  id: number
-  name: string
+interface WorkoutQuestionnaireFormProps {
+  clientId: number
+  clientName: string
+  existingData?: any
 }
 
-export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[] }) {
-  const router = useRouter()
-  const [selectedClientId, setSelectedClientId] = useState<number | null>(null)
+export function WorkoutQuestionnaireForm({ clientId, clientName, existingData }: WorkoutQuestionnaireFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
@@ -26,7 +26,7 @@ export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[
     primaryGoal: "",
     eventDeadline: "",
     secondaryGoals: "",
-    fitnessLevel: "",
+    fitnessLevel: "Beginner",
     trainingExperience: "",
     currentStats: "",
     bodyComposition: "",
@@ -46,6 +46,13 @@ export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[
     timezone: "",
   })
 
+  // Load existing data if available
+  useEffect(() => {
+    if (existingData) {
+      setFormData(existingData)
+    }
+  }, [existingData])
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -57,64 +64,44 @@ export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!selectedClientId) {
-      setMessage({ type: "error", text: "Please select a client" })
-      return
-    }
-
     setIsSubmitting(true)
     setMessage(null)
 
     try {
-      const result = await saveWorkoutQuestionnaire({
-        client_id: selectedClientId,
+      const result = await saveQuestionnaire({
+        client_id: clientId,
         workout_data: formData,
+        nutrition_data: existingData?.nutrition_data || null,
       })
 
       if (result.success) {
-        setMessage({ type: "success", text: result.message })
-        // Optionally reset form or redirect
+        setMessage({ type: "success", text: "Workout questionnaire saved successfully!" })
       } else {
-        setMessage({ type: "error", text: result.message })
+        setMessage({ type: "error", text: result.message || "An error occurred" })
       }
     } catch (error) {
-      setMessage({ type: "error", text: "An unexpected error occurred" })
-      console.error(error)
+      setMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "An unknown error occurred",
+      })
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="bg-gray-900 p-6 rounded-lg shadow-lg">
+    <div>
       {message && (
-        <div
-          className={`mb-4 p-4 rounded-md ${
-            message.type === "success" ? "bg-green-800 text-green-100" : "bg-red-800 text-red-100"
-          }`}
-        >
-          {message.text}
-        </div>
+        <Alert variant={message.type === "success" ? "default" : "destructive"} className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{message.text}</AlertDescription>
+        </Alert>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="clientSelect" className="text-white">
-            Client Name
-          </Label>
-          <Select onValueChange={(value) => setSelectedClientId(Number(value))} required>
-            <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-              <SelectValue placeholder="Select a client" />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700 text-white">
-              {clients.map((client) => (
-                <SelectItem key={client.id} value={client.id.toString()}>
-                  {client.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <h2 className="text-xl font-semibold text-white">Workout Questionnaire for {clientName}</h2>
+          <p className="text-gray-400 text-sm">Complete the form below to create a workout plan.</p>
         </div>
 
         <div className="space-y-2">
@@ -128,7 +115,6 @@ export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[
             onChange={handleChange}
             className="bg-gray-800 border-gray-700 text-white"
             placeholder="What is your main fitness goal?"
-            required
           />
         </div>
 
@@ -164,7 +150,7 @@ export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[
           <Label htmlFor="fitnessLevel" className="text-white">
             Current Fitness Level
           </Label>
-          <Select onValueChange={(value) => handleSelectChange("fitnessLevel", value)} required>
+          <Select value={formData.fitnessLevel} onValueChange={(value) => handleSelectChange("fitnessLevel", value)}>
             <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Select fitness level" />
             </SelectTrigger>
@@ -208,7 +194,7 @@ export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[
           <Label htmlFor="bodyComposition" className="text-white">
             Current Body Composition or Weight
           </Label>
-          <Textarea
+          <Input
             id="bodyComposition"
             name="bodyComposition"
             value={formData.bodyComposition}
@@ -222,7 +208,7 @@ export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[
           <Label htmlFor="preferredTrainingStyle" className="text-white">
             Preferred Training Method or Style
           </Label>
-          <Textarea
+          <Input
             id="preferredTrainingStyle"
             name="preferredTrainingStyle"
             value={formData.preferredTrainingStyle}
@@ -362,7 +348,7 @@ export default function WorkoutQuestionnaireForm({ clients }: { clients: Client[
           <Label htmlFor="progressTrackingMethod" className="text-white">
             Preferred Progress Tracking Method
           </Label>
-          <Textarea
+          <Input
             id="progressTrackingMethod"
             name="progressTrackingMethod"
             value={formData.progressTrackingMethod}

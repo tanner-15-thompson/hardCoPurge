@@ -13,11 +13,9 @@ export function ClientWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   useEffect(() => {
-    // Simple check using our AdminService
-    const checkAuth = async () => {
-      // Check if authenticated using our service
+    // Check authentication status once on component mount
+    const checkAuth = () => {
       const isAuth = AdminService.isAuthenticated()
-
       setIsAuthenticated(isAuth)
       setIsLoading(false)
 
@@ -28,6 +26,24 @@ export function ClientWrapper({ children }: { children: React.ReactNode }) {
     }
 
     checkAuth()
+
+    // Set up event listener for storage changes (for multi-tab support)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "adminAuthenticated") {
+        const isAuth = e.newValue === "true"
+        setIsAuthenticated(isAuth)
+
+        if (!isAuth && pathname !== "/admin") {
+          router.push("/admin")
+        }
+      }
+    }
+
+    window.addEventListener("storage", handleStorageChange)
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange)
+    }
   }, [pathname, router])
 
   // Show loading state

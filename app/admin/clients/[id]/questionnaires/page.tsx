@@ -1,13 +1,14 @@
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { ClientHeaderNav } from "@/components/client-header-nav"
-import { AdminClientQuestionnaires } from "./admin-client-questionnaires"
+import { ClientQuestionnaires } from "./client-questionnaires"
 
-export default async function AdminClientQuestionnairesPage({ params }: { params: { id: string } }) {
+export default async function ClientQuestionnairesPage({ params }: { params: { id: string } }) {
   const supabase = createServerComponentClient({ cookies })
   const clientId = Number.parseInt(params.id)
 
-  // Fetch client data
+  // Fetch client data - we're no longer checking admin access here
+  // since we've already verified it in the ClientWrapper component
   const { data: client, error } = await supabase.from("clients").select("id, name, email").eq("id", clientId).single()
 
   if (error || !client) {
@@ -29,7 +30,7 @@ export default async function AdminClientQuestionnairesPage({ params }: { params
   return (
     <div className="container mx-auto py-6">
       <ClientHeaderNav clientId={clientId} clientName={client.name} />
-      <AdminClientQuestionnaires clientId={clientId} clientName={client.name} />
+      <ClientQuestionnaires clientId={clientId} clientName={client.name} />
     </div>
   )
 }
