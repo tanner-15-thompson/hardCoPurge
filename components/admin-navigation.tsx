@@ -2,158 +2,114 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, Users, Settings, Home, PlusCircle, MessageSquare } from "lucide-react"
-import { AdminSignout } from "./admin-signout"
-import { cn } from "@/lib/utils"
-import { useEffect, useState } from "react"
+import {
+  Users,
+  FileText,
+  Home,
+  LogOut,
+  Settings,
+  MessageSquare,
+  Calendar,
+  LayoutDashboard,
+  Dumbbell,
+} from "lucide-react"
+import { AdminSignout } from "@/components/admin-signout"
 
 export function AdminNavigation() {
   const pathname = usePathname()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-
-  useEffect(() => {
-    // Check if the user is authenticated on the client side
-    const checkAuth = () => {
-      const cookies = document.cookie.split(";").map((cookie) => cookie.trim())
-      const isAuth = cookies.some(
-        (cookie) => cookie.startsWith("admin_authenticated=") || cookie.startsWith("admin_session="),
-      )
-      setIsAuthenticated(isAuth)
-    }
-
-    checkAuth()
-
-    // Also check when the component mounts
-    if (typeof window !== "undefined") {
-      checkAuth()
-    }
-  }, [pathname])
-
-  // If not authenticated and not on the login page, don't render the navigation
-  if (!isAuthenticated && pathname === "/admin") {
-    return null
-  }
 
   const isActive = (path: string) => {
-    if (path === "/admin" && pathname === "/admin") {
-      return true
-    }
-    return pathname !== "/admin" && pathname.startsWith(path)
+    return pathname === path || pathname?.startsWith(`${path}/`)
   }
 
   return (
-    <div className="bg-gray-900 text-gray-200 w-64 flex-shrink-0 hidden md:block">
-      <div className="flex flex-col h-full">
-        <div className="p-4">
-          <Link href="/" className="flex items-center">
-            <Home className="h-6 w-6 text-purple-400" />
-            <span className="ml-2 text-lg font-bold text-white">HARD Fitness</span>
-          </Link>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-1">
-          <Link
-            href="/admin"
-            className={`flex items-center px-4 py-3 text-sm rounded-lg ${
-              isActive("/admin") && pathname === "/admin"
-                ? "bg-gray-800 text-purple-400"
-                : "hover:bg-gray-800 hover:text-purple-400"
-            }`}
-          >
-            <BarChart3 className="h-5 w-5 mr-3" />
-            Dashboard
-          </Link>
-
-          <Link
-            href="/admin/clients"
-            className={`flex items-center px-4 py-3 text-sm rounded-lg ${
-              isActive("/admin/clients") ? "bg-gray-800 text-purple-400" : "hover:bg-gray-800 hover:text-purple-400"
-            }`}
-          >
-            <Users className="h-5 w-5 mr-3" />
-            Clients
-          </Link>
-
-          <Link
-            href="/admin/clients/new"
-            className={`flex items-center px-4 py-3 text-sm rounded-lg ${
-              pathname === "/admin/clients/new"
-                ? "bg-gray-800 text-purple-400"
-                : "hover:bg-gray-800 hover:text-purple-400"
-            }`}
-          >
-            <PlusCircle className="h-5 w-5 mr-3" />
-            Add Client
-          </Link>
-
-          {/* Questionnaires section */}
-          <div className="mb-6">
-            <h3 className="font-medium text-sm mb-2 text-gray-500">QUESTIONNAIRES</h3>
-            <ul className="space-y-1">
-              <li>
-                <Link
-                  href="/admin/questionnaires"
-                  className={cn(
-                    "block px-3 py-2 rounded-md text-sm",
-                    pathname === "/admin/questionnaires" ? "bg-gray-100 font-medium" : "text-gray-600 hover:bg-gray-50",
-                  )}
-                >
-                  All Questionnaires
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/admin/questionnaires/workout"
-                  className={cn(
-                    "block px-3 py-2 rounded-md text-sm",
-                    pathname === "/admin/questionnaires/workout"
-                      ? "bg-gray-100 font-medium"
-                      : "text-gray-600 hover:bg-gray-50",
-                  )}
-                >
-                  Workout Questionnaire
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/admin/questionnaires/nutrition"
-                  className={cn(
-                    "block px-3 py-2 rounded-md text-sm",
-                    pathname === "/admin/questionnaires/nutrition"
-                      ? "bg-gray-100 font-medium"
-                      : "text-gray-600 hover:bg-gray-50",
-                  )}
-                >
-                  Nutrition Questionnaire
-                </Link>
-              </li>
-            </ul>
+    <div className="h-full flex flex-col bg-gray-900 text-gray-300 w-64 border-r border-gray-800">
+      <div className="p-4 border-b border-gray-800">
+        <Link href="/admin/dashboard" className="flex items-center space-x-2">
+          <div className="bg-purple-600 p-1 rounded">
+            <Dumbbell className="h-5 w-5 text-white" />
           </div>
+          <span className="text-xl font-bold text-white">HardFitness</span>
+        </Link>
+      </div>
 
-          <Link
-            href="/admin/submissions"
-            className={`flex items-center px-4 py-3 text-sm rounded-lg ${
-              isActive("/admin/submissions") ? "bg-gray-800 text-purple-400" : "hover:bg-gray-800 hover:text-purple-400"
-            }`}
-          >
-            <MessageSquare className="h-5 w-5 mr-3" />
-            Contact Submissions
-          </Link>
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <Link
+          href="/admin/dashboard"
+          className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
+            isActive("/admin/dashboard") ? "bg-gray-800 text-white" : "hover:bg-gray-800 hover:text-white"
+          }`}
+        >
+          <LayoutDashboard className="h-5 w-5" />
+          <span>Dashboard</span>
+        </Link>
 
-          <Link
-            href="/admin/settings"
-            className={`flex items-center px-4 py-3 text-sm rounded-lg ${
-              isActive("/admin/settings") ? "bg-gray-800 text-purple-400" : "hover:bg-gray-800 hover:text-purple-400"
-            }`}
-          >
-            <Settings className="h-5 w-5 mr-3" />
-            Settings
-          </Link>
-        </nav>
+        <Link
+          href="/admin/clients"
+          className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
+            isActive("/admin/clients") ? "bg-gray-800 text-white" : "hover:bg-gray-800 hover:text-white"
+          }`}
+        >
+          <Users className="h-5 w-5" />
+          <span>Clients</span>
+        </Link>
 
-        <div className="p-4">
-          <AdminSignout />
-        </div>
+        <Link
+          href="/admin/questionnaires"
+          className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
+            isActive("/admin/questionnaires") ? "bg-gray-800 text-white" : "hover:bg-gray-800 hover:text-white"
+          }`}
+        >
+          <FileText className="h-5 w-5" />
+          <span>Questionnaires</span>
+        </Link>
+
+        <Link
+          href="/admin/prompt-generator"
+          className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
+            isActive("/admin/prompt-generator") ? "bg-gray-800 text-white" : "hover:bg-gray-800 hover:text-white"
+          }`}
+        >
+          <MessageSquare className="h-5 w-5" />
+          <span>Plan Generator</span>
+        </Link>
+
+        <Link
+          href="/admin/calendar"
+          className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
+            isActive("/admin/calendar") ? "bg-gray-800 text-white" : "hover:bg-gray-800 hover:text-white"
+          }`}
+        >
+          <Calendar className="h-5 w-5" />
+          <span>Calendar</span>
+        </Link>
+
+        <Link
+          href="/admin/settings"
+          className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
+            isActive("/admin/settings") ? "bg-gray-800 text-white" : "hover:bg-gray-800 hover:text-white"
+          }`}
+        >
+          <Settings className="h-5 w-5" />
+          <span>Settings</span>
+        </Link>
+
+        <Link
+          href="/"
+          className="flex items-center space-x-3 px-3 py-2 rounded-md transition-colors hover:bg-gray-800 hover:text-white"
+        >
+          <Home className="h-5 w-5" />
+          <span>View Site</span>
+        </Link>
+      </nav>
+
+      <div className="p-4 border-t border-gray-800">
+        <AdminSignout>
+          <button className="flex items-center space-x-3 px-3 py-2 w-full text-left rounded-md transition-colors hover:bg-gray-800 hover:text-white">
+            <LogOut className="h-5 w-5" />
+            <span>Sign Out</span>
+          </button>
+        </AdminSignout>
       </div>
     </div>
   )

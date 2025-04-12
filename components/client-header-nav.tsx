@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Dumbbell, Utensils, FileText, ClipboardList } from "lucide-react"
+import { Dumbbell, Utensils, FileText, ClipboardList, FileQuestion } from "lucide-react"
 
 interface ClientHeaderNavProps {
   clientId: number
@@ -72,6 +72,18 @@ export function ClientHeaderNav({ clientId, clientName }: ClientHeaderNavProps) 
         >
           <Utensils className="h-5 w-5 mr-2" />
           Current Nutrition
+        </Link>
+
+        <Link
+          href={`/admin/clients/${clientId}/questionnaires`}
+          className={`flex items-center px-6 py-3 text-sm font-medium border-b-2 whitespace-nowrap ${
+            isActive("/questionnaires")
+              ? "border-purple-500 text-purple-400"
+              : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-600"
+          }`}
+        >
+          <FileQuestion className="h-5 w-5 mr-2" />
+          Questionnaires
         </Link>
 
         <Link

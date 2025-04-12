@@ -5,7 +5,6 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Dumbbell, Filter, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { getClientActivities } from "@/lib/activity-service"
 
 interface Activity {
   id: number
@@ -60,20 +59,10 @@ export default function RealTimeActivities({ clientId }: { clientId: number }) {
   const supabase = createClientComponentClient()
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        const initialActivities = await getClientActivities(clientId)
-        setActivities(initialActivities)
-      } catch (error) {
-        console.error("Error fetching activities:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
+    // Initial fetch
+    fetchActivities()
 
-    fetchData()
-
+    // Set up real-time subscription
     const channel = supabase
       .channel("client-activities")
       .on(
@@ -103,11 +92,6 @@ export default function RealTimeActivities({ clientId }: { clientId: number }) {
       supabase.removeChannel(channel)
     }
   }, [clientId, supabase, activeFilter])
-
-  // When filter changes, fetch activities with the new filter
-  useEffect(() => {
-    fetchActivities()
-  }, [activeFilter])
 
   async function fetchActivities() {
     setLoading(true)
@@ -143,6 +127,11 @@ export default function RealTimeActivities({ clientId }: { clientId: number }) {
       setLoading(false)
     }
   }
+
+  // When filter changes, fetch activities with the new filter
+  useEffect(() => {
+    fetchActivities()
+  }, [activeFilter])
 
   // Get color for activity type
   const getActivityTypeColor = (type: string) => {

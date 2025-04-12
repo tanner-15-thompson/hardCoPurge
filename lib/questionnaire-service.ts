@@ -1,13 +1,7 @@
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 
-export interface QuestionnaireData {
-  client_id: number
-  workout_data: WorkoutData
-  nutrition_data: NutritionData
-}
-
-export interface WorkoutData {
+export type WorkoutData = {
   goal: string
   experience: string
   frequency: number
@@ -15,7 +9,7 @@ export interface WorkoutData {
   preferences: string[]
 }
 
-export interface NutritionData {
+export type NutritionData = {
   goal: string
   allergies: string[]
   preferences: string
@@ -23,55 +17,58 @@ export interface NutritionData {
   restrictions: string[]
 }
 
-export interface ClientPlan {
+export type QuestionnaireData = {
+  id?: string
+  client_id: number
+  workout_data: WorkoutData
+  nutrition_data: NutritionData
+  created_at?: string
+}
+
+export type ClientPlan = {
+  id?: string
   client_id: number
   workout_html: string
   nutrition_html: string
-  workout_ics: string
-  nutrition_ics: string
+  workout_ics?: string
+  nutrition_ics?: string
+  created_at?: string
 }
 
 export async function getClientQuestionnaire(clientId: number): Promise<QuestionnaireData | null> {
   const supabase = createServerComponentClient({ cookies })
 
-  try {
-    const { data, error } = await supabase
-      .from("client_questionnaires")
-      .select("*")
-      .eq("client_id", clientId)
-      .order("created_at", { ascending: false }) // Order by creation date to get the latest
-      .limit(1) // Limit to one result
+  const { data, error } = await supabase
+    .from("client_questionnaires")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single()
 
-    if (error) {
-      console.error("Error fetching client questionnaire:", error)
-      return null
-    }
-
-    if (!data || data.length === 0) {
-      return null // Handle the case where no data is returned
-    }
-
-    return data[0] as QuestionnaireData // Return the first element
-  } catch (err) {
-    console.error("Error in getClientQuestionnaire:", err)
+  if (error || !data) {
+    console.error("Error fetching questionnaire:", error)
     return null
   }
+
+  return data as QuestionnaireData
 }
 
 export async function getClientPlan(clientId: number): Promise<ClientPlan | null> {
   const supabase = createServerComponentClient({ cookies })
 
-  try {
-    const { data, error } = await supabase.from("client_plans").select("*").eq("client_id", clientId).single()
+  const { data, error } = await supabase
+    .from("client_plans")
+    .select("*")
+    .eq("client_id", clientId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single()
 
-    if (error) {
-      console.error("Error fetching client plan:", error)
-      return null
-    }
-
-    return data as ClientPlan
-  } catch (err) {
-    console.error("Error in getClientPlan:", err)
+  if (error || !data) {
+    console.error("Error fetching client plan:", error)
     return null
   }
+
+  return data as ClientPlan
 }

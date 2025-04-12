@@ -1,9 +1,10 @@
+import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
-import { createServerSupabaseClient } from "@/lib/supabase"
 
 export async function GET() {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createRouteHandlerClient({ cookies })
 
     // Create client_workouts table if it doesn't exist
     const { error: workoutsError } = await supabase.rpc("execute_sql", {
@@ -126,11 +127,11 @@ export async function GET() {
       // Create the execute_sql function
       const { error: createFunctionError } = await supabase.query(`
         CREATE OR REPLACE FUNCTION execute_sql(sql_query TEXT)
-        RETURNS VOID AS $
+        RETURNS VOID AS $$
         BEGIN
           EXECUTE sql_query;
         END;
-        $ LANGUAGE plpgsql SECURITY DEFINER;
+        $$ LANGUAGE plpgsql SECURITY DEFINER;
       `)
 
       if (createFunctionError) {

@@ -63,8 +63,8 @@
     "@tailwindcss/typography": "latest",
     "@supabase/auth-helpers-nextjs": "latest",
     "dompurify": "latest",
-    "@stripe/react-stripe-js": "latest",
     "stripe": "latest",
+    "@stripe/react-stripe-js": "latest",
     "fs": "latest",
     "path": "latest"
   },

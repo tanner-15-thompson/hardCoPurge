@@ -1,11 +1,12 @@
 "use server"
 
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 import type { QuestionnaireData, ClientPlan } from "@/lib/questionnaire-service"
 import { revalidatePath } from "next/cache"
 
 export async function saveQuestionnaire(data: QuestionnaireData) {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerActionClient({ cookies })
 
   // Check if admin
   const { data: session } = await supabase.auth.getSession()
@@ -37,7 +38,7 @@ export async function saveQuestionnaire(data: QuestionnaireData) {
 }
 
 export async function saveClientPlan(data: ClientPlan) {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerActionClient({ cookies })
 
   // Check if admin
   const { data: session } = await supabase.auth.getSession()

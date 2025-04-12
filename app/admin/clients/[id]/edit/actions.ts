@@ -2,42 +2,56 @@
 
 import { createServerSupabaseClient } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
+import { checkAdminAuth } from "@/lib/admin-auth"
 
-export async function updateClient(clientId: number, formData: any) {
-  const supabase = createServerSupabaseClient()
+interface UpdateData {
+  name: string
+  email: string
+  phone: string
+}
+
+export async function updateClient(clientId: string, data: UpdateData) {
+  // Check admin authentication
+  const isAdmin = await checkAdminAuth()
+  if (!isAdmin) {
+    return { error: "Unauthorized access" }
+  }
 
   try {
+    const supabase = createServerSupabaseClient()
+
+    // Basic validation
+    if (!data.name.trim()) {
+      return { error: "Name is required" }
+    }
+
+    if (!data.email.trim()) {
+      return { error: "Email is required" }
+    }
+
+    // Update client in database
     const { error } = await supabase
       .from("clients")
       .update({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        goals: formData.goals,
-        fitness_level: formData.fitness_level,
-        health_conditions: formData.health_conditions,
-        dietary_restrictions: formData.dietary_restrictions,
+        name: data.name.trim(),
+        email: data.email.trim(),
+        phone: data.phone.trim(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", clientId)
 
     if (error) {
       console.error("Error updating client:", error)
-      throw new Error("Failed to update client")
+      return { error: error.message }
     }
 
-    // Log the activity
-    await supabase.from("activity_logs").insert({
-      client_id: clientId,
-      activity_type: "Client Updated",
-      description: "Client profile information was updated",
-      created_at: new Date().toISOString(),
-    })
-
+    // Revalidate the client pages to reflect the changes
     revalidatePath(`/admin/clients/${clientId}`)
+    revalidatePath("/admin/clients")
+
     return { success: true }
   } catch (error) {
-    console.error("Error in updateClient:", error)
-    throw error
+    console.error("Unexpected error updating client:", error)
+    return { error: "An unexpected error occurred" }
   }
 }
