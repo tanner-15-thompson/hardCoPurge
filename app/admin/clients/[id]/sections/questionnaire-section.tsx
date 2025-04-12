@@ -13,11 +13,8 @@ interface QuestionnaireSectionProps {
 }
 
 export default function QuestionnaireSection({ client, questionnaire, compact = false }: QuestionnaireSectionProps) {
-  const hasWorkoutData =
-    questionnaire?.workout_data && questionnaire.workout_data.goal && questionnaire.workout_data.goal.length > 0
-
-  const hasNutritionData =
-    questionnaire?.nutrition_data && questionnaire.nutrition_data.goal && questionnaire.nutrition_data.goal.length > 0
+  const hasWorkoutData = questionnaire?.workout_data && Object.keys(questionnaire.workout_data).length > 0
+  const hasNutritionData = questionnaire?.nutrition_data && Object.keys(questionnaire.nutrition_data).length > 0
 
   return (
     <Card className="bg-gray-800 border-gray-700">
@@ -133,14 +130,16 @@ export default function QuestionnaireSection({ client, questionnaire, compact = 
           )}
         </div>
       </CardContent>
-      <CardFooter>
-        <Link href={`/admin/clients/${client.id}/questionnaire`} className="w-full">
-          <Button variant="outline" className="w-full border-gray-600 text-gray-300 hover:bg-gray-700">
-            <Edit className="h-4 w-4 mr-2" />
-            {compact ? "Manage Questionnaires" : "Edit Full Questionnaire"}
-          </Button>
-        </Link>
-      </CardFooter>
+      {compact && (
+        <CardFooter>
+          <Link href={`/admin/clients/${client.id}/questionnaire`} className="w-full">
+            <Button variant="outline" className="w-full border-gray-600 text-gray-300 hover:bg-gray-700">
+              <Edit className="h-4 w-4 mr-2" />
+              Manage Questionnaires
+            </Button>
+          </Link>
+        </CardFooter>
+      )}
     </Card>
   )
 }

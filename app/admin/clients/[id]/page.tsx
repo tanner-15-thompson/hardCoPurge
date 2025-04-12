@@ -3,7 +3,6 @@ import { cookies } from "next/headers"
 import { notFound } from "next/navigation"
 import ClientManagementInterface from "./client-management-interface"
 import { getClientQuestionnaire } from "@/lib/questionnaire-service"
-import { AdminService } from "@/lib/admin-service"
 
 export default async function ClientManagementPage({ params }: { params: { id: string } }) {
   const clientId = Number.parseInt(params.id, 10)
@@ -15,10 +14,10 @@ export default async function ClientManagementPage({ params }: { params: { id: s
   const supabase = createServerComponentClient({ cookies })
 
   // Fetch client data
-  const client = await AdminService.getClient(clientId)
+  const { data: client, error: clientError } = await supabase.from("clients").select("*").eq("id", clientId).single()
 
-  if (!client) {
-    console.error("Error fetching client")
+  if (clientError || !client) {
+    console.error("Error fetching client:", clientError)
     notFound()
   }
 
