@@ -1,7 +1,6 @@
 "use server"
 
-import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createServerSupabaseClient } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
 
 type WorkoutData = {
@@ -34,7 +33,7 @@ type SaveWorkoutQuestionnaireParams = {
 }
 
 export async function saveWorkoutQuestionnaire({ client_id, workout_data }: SaveWorkoutQuestionnaireParams) {
-  const supabase = createServerActionClient({ cookies })
+  const supabase = createServerSupabaseClient()
 
   // Check if admin
   const { data: session } = await supabase.auth.getSession()

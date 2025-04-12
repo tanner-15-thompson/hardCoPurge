@@ -1,7 +1,6 @@
 "use server"
 
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createServerSupabaseClient } from "@/lib/supabase"
 
 type ActivityType = "workout" | "nutrition" | "profile" | "measurement" | "goal" | "system"
 
@@ -12,7 +11,7 @@ export async function logActivity(
   description: string,
   metadata: Record<string, any> = {},
 ) {
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = createServerSupabaseClient()
 
   try {
     const { data, error } = await supabase.from("client_activities").insert({

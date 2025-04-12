@@ -1,7 +1,6 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
+import { createServerSupabaseClient } from "@/lib/supabase"
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
@@ -12,7 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET
 
 export async function POST(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createServerSupabaseClient()
   const body = await request.text()
   const sig = request.headers.get("stripe-signature") as string
 
