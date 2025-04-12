@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Loader2 } from "lucide-react"
-import { ClientDetailContent } from "./client-detail-content"
+import { ClientHeaderNav } from "@/components/client-header-nav"
+import { ClientDetailContent } from "@/app/admin/clients/[id]/client-detail-content"
 
 export default function ClientDetailPage() {
   const [client, setClient] = useState<any>(null)
@@ -71,5 +72,10 @@ export default function ClientDetailPage() {
     )
   }
 
-  return <ClientDetailContent client={client} />
+  return (
+    <div className="container mx-auto py-6">
+      <ClientHeaderNav clientId={client.id} clientName={client.name} />
+      <ClientDetailContent client={client} />
+    </div>
+  )
 }
